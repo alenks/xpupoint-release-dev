@@ -1,0 +1,16 @@
+*.so
+*.o
+*.a
+*.d
+*.exe
+*.log
+*.err
+*.out
+*BasicBlocks.*
+*obj-intel64*
+*.tar.gz
+*__pycache__*
+tools/pin-*
+tools/gtpin-*
+tools/nvbit-*
+tools/cmake-*

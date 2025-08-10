@@ -1,0 +1,73 @@
+# Makefile.Intel - build configuration for Intel GPU platforms
+
+PIN_VERSION := 3.30
+PIN_DIR := pin-3.30-98830-g1d7b601b3-gcc-linux
+PIN_URL := https://software.intel.com/sites/landingpage/pintool/downloads/$(PIN_DIR).tar.gz
+
+GTPIN_VERSION := 4.5.0
+GTPIN_DIR := gtpin-4.5.0-linux
+GTPIN_URL := https://downloadmirror.intel.com/856505/external-release-$(GTPIN_DIR).tar.xz
+
+.PHONY: all cpupintool gtpintool pin-profiler pin-timer gt-profiler gt-timer
+.PHONY: clean help setup-deps download-pin download-gtpin clean-tools clean-deps
+
+all: setup-deps cpupintool gtpintool
+
+setup-deps: download-pin download-gtpin
+
+download-pin:
+	@if [ ! -d "tools/$(PIN_DIR)" ]; then \
+		echo "Pin not found, downloading Pin $(PIN_VERSION)..."; \
+		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C tools/ ; \
+	else \
+		echo "Pin $(PIN_VERSION) already exists"; \
+	fi
+
+download-gtpin:
+	@if [ ! -d "tools/$(GTPIN_DIR)" ]; then \
+		echo "GTPin not found, downloading GTPin $(GTPIN_VERSION)..."; \
+		mkdir -p tools/$(GTPIN_DIR) ; \
+		wget -O - $(GTPIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -J --strip-components=1 -C tools/$(GTPIN_DIR) ; \
+	else \
+		echo "GTPin $(GTPIN_VERSION) already exists"; \
+	fi
+
+gt-profiler:
+	@cd src/XPU-Profiler/Intel/GTPinTool && \
+	mkdir -p build && \
+	cd build && \
+	cmake .. -DCMAKE_BUILD_TYPE=Debug -DARCH=intel64 -DGTPIN_KIT=$(PWD)/tools/$(GTPIN_DIR) && \
+	$(MAKE)
+
+gt-timer:
+	@cd src/XPU-Timer/Intel/GTPinTool && \
+	mkdir -p build && \
+	cd build && \
+	cmake .. -DCMAKE_BUILD_TYPE=Debug -DARCH=intel64 -DGTPIN_KIT=$(PWD)/tools/$(GTPIN_DIR) && \
+	$(MAKE)
+
+pin-profiler:
+	$(MAKE) -C src/XPU-Profiler/Intel/CPUPinTool
+
+pin-timer:
+	$(MAKE) -C src/XPU-Timer/Intel/CPUPinTool
+
+cpupintool: download-pin pin-profiler pin-timer
+
+gtpintool: download-gtpin gt-profiler gt-timer
+
+clean: clean-tools clean-deps
+
+clean-tools:
+	-$(MAKE) -C src/XPU-Profiler/Intel/CPUPinTool clean
+	-$(MAKE) -C src/XPU-Profiler/Intel/GTPinTool/build clean
+
+clean-deps:
+	-rm -rf tools/$(PIN_DIR) tools/$(GTPIN_DIR)
+
+help:
+	@echo "Available targets for Intel build:"
+	@echo "  all         - Build both CPUPinTool and GTPinTool (default)"
+	@echo "  cpupintool  - Build only CPUPinTool"
+	@echo "  gtpintool   - Build only GTPinTool"
+	@echo "  clean       - Clean all Intel build artifacts"

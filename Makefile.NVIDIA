@@ -1,0 +1,65 @@
+# Makefile.NVIDIA - build configuration for NVIDIA GPU platforms
+
+PIN_VERSION := 3.30
+PIN_DIR := pin-3.30-98830-g1d7b601b3-gcc-linux
+PIN_URL := https://software.intel.com/sites/landingpage/pintool/downloads/$(PIN_DIR).tar.gz
+
+NVBIT_VERSION := 1.5.5
+NVBIT_DIR := nvbit-Linux-x86_64-$(NVBIT_VERSION)
+NVBIT_URL := https://github.com/NVlabs/NVBit/releases/download/$(NVBIT_VERSION)/$(NVBIT_DIR).tar.bz2
+
+.PHONY: all cpupintool nvbittool pin-profiler pin-timer nv-profiler nv-timer
+.PHONY:	clean help setup-deps download-pin download-nvbit clean-tools clean-deps
+
+all: setup-deps cpupintool nvbittool
+
+setup-deps: download-pin download-nvbit
+
+download-pin:
+	@if [ ! -d "$(PIN_DIR)" ]; then \
+		echo "Pin not found, downloading Pin $(PIN_VERSION)..."; \
+		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C tools/ ; \
+	else \
+		echo "Pin $(PIN_VERSION) already exists"; \
+	fi
+
+download-nvbit:
+	@if [ ! -d "$(NVBIT_DIR)" ]; then \
+		echo "NVBit not found, downloading NVBit $(NVBIT_VERSION)..."; \
+		mkdir -p tools/$(NVBIT_DIR) ; \
+		wget -O - $(NVBIT_URL) --no-check-certificate --quiet --show-progress | tar -xf - -j --strip-components=1 -C tools/$(NVBIT_DIR) ; \
+	else \
+		echo "NVBit $(NVBIT_VERSION) already exists"; \
+	fi
+
+pin-profiler:
+	$(MAKE) -C src/XPU-Profiler/NVIDIA/CPUPinTool
+
+pin-timer:
+	$(MAKE) -C src/XPU-Timer/NVIDIA/CPUPinTool
+
+nv-profiler:
+	$(MAKE) -C src/XPU-Profiler/NVIDIA/NVBitTool
+
+nv-timer:
+	$(MAKE) -C src/XPU-Timer/NVIDIA/NVBitTool
+
+cpupintool: download-pin pin-profiler pin-timer
+
+nvbittool: download-nvbit nv-profiler nv-timer
+
+clean: clean-tools clean-deps
+
+clean-tools:
+	-$(MAKE) -C src/XPU-Profiler/NVIDIA/CPUPinTool clean
+	-$(MAKE) -C src/XPU-Profiler/NVIDIA/NVBitTool clean
+
+clean-deps:
+	-rm -rf tools/$(PIN_DIR) tools/$(NVBIT_DIR)
+
+help:
+	@echo "Available targets for NVIDIA build:"
+	@echo "  all         - Build both CPUPinTool and NVBitTool (default)"
+	@echo "  cpupintool  - Build only CPUPinTool"
+	@echo "  nvbittool   - Build only NVBitTool"
+	@echo "  clean       - Clean all NVIDIA build artifacts"
