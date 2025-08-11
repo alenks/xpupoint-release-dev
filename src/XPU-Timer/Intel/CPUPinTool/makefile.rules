@@ -26,7 +26,6 @@ GTPIN_LIB=$(GTPIN_HOME)/Lib/intel64/
 
 GTPIN_INCLUDE=-I$(GTPIN_HOME)/Include -I$(GTPIN_HOME)/Include/ged/intel64/
 
-LTE_LIB_HOME=$(PB2ELF)/src/lib
 P2BLIBS=-lcle -lperfle
 
 CXXFLAGS = -D_FILE_OFFSET_BITS=64 -I$(PIN_ROOT)/source/tools/InstLib $(GTPIN_INCLUDE) -I$(LTE_LIB_HOME) -I/usr/include/x86_64-linux-gnu/bits/types/ -I../Include

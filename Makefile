@@ -45,6 +45,11 @@ build-intel-%:
 build-nvidia-%:
 	$(MAKE) -C "benchmarks/$*" -f "Makefile" nvidia
 
+benchmark:
+	@echo "Benchmarks: $(BENCHMARKS)"
+
+benchmarks: benchmark
+
 clean: clean-intel clean-nvidia clean-bench
 
 clean-intel:
@@ -57,11 +62,6 @@ clean-bench: $(addprefix clean-bench-,$(BENCHMARKS))
 
 clean-bench-%:
 	-$(MAKE) -C "benchmarks/$*" -f "Makefile" clean
-
-benchmark:
-	@echo "Benchmarks: $(BENCHMARKS)"
-
-benchmarks: benchmark
 
 help:
 	@echo "XPU-Point Build System"

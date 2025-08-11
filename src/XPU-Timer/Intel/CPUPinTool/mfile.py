@@ -84,11 +84,10 @@ else:
     env['arch'] = 'ia32'  
 
 # Set include and link dirs 
-#LTE_LIB_HOME=$(PB2ELF)/src/lib
 my_include_dir = os.path.join('../Include')
 gtpin_include_dir = os.path.join(os.environ['GTPIN_KIT'],'Include')
 ged_include_dir = os.path.join(os.environ['GTPIN_KIT'],'Include','ged',env['arch'])
-lte_include_dir = os.path.join(os.environ['PB2ELF'],'src','lib')
+lte_include_dir = os.path.join(os.environ['LTE_LIB_HOME'])
 pinplay_include_dir = os.path.join(os.environ['SDE_BUILD_KIT'],'pinkit','pinplay','include')
 instlib_include_dir = os.path.join(os.environ['SDE_BUILD_KIT'],'pinkit','source',
                                                                 'tools','InstLib')
@@ -98,7 +97,7 @@ pinplay_link_dir = os.path.join(os.environ['SDE_BUILD_KIT'],'pinkit','pinplay',e
 example_link_dir = os.path.join(os.environ['SDE_BUILD_KIT'], 'pinkit','sde-example',
                                                              'lib',env['arch'])
 pin_lib_dir = os.path.join(os.environ['SDE_BUILD_KIT'],env['arch'],'pin_lib')    
-lte_lib_dir = os.path.join(os.environ['PB2ELF'],'src','lib')    
+lte_lib_dir = os.path.join(os.environ['LTE_LIB_HOME'])    
 gtpin_link_dir = os.path.join(os.environ['GTPIN_KIT'],'Lib',env['arch'])    
 pin_crt_dir = os.path.join(os.environ['SDE_BUILD_KIT'],'pinkit',env['arch'],'runtime','pincrt')
 

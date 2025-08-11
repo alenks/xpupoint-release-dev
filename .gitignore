@@ -10,7 +10,11 @@
 *obj-intel64*
 *.tar.gz
 *__pycache__*
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
 tools/pin-*
 tools/gtpin-*
 tools/nvbit-*
 tools/cmake-*
+benchmarks/gromacs/Install/

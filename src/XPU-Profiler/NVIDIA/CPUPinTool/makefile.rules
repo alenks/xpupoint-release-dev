@@ -17,7 +17,6 @@
 ###### Place all generic definitions here ######
 
 PIN_ROOT?=$(shell pwd | sed '/extras.*/s///g')
-LTE_LIB_HOME=$(PB2ELF)/src/lib
 P2BLIBS=-lcle -lperfle
 
 OPT?=-O2
@@ -27,14 +26,7 @@ CXXFLAGS = -D_FILE_OFFSET_BITS=64 -I$(PIN_ROOT)/source/tools/InstLib -I$(LTE_LIB
 
 CXXFLAGS += ${WARNINGS} $(DBG) $(OPT) ${DEPENDENCYFLAG} 
 
-#TOOL_CXXFLAGS += -D_FILE_OFFSET_BITS=64 -I$(PIN_ROOT)/source/tools/InstLib -I/usr/include/x86_64-linux-gnu/bits/types/ -I../Include 
-
-#TOOL_CXXFLAGS += ${WARNINGS} $(DBG) $(OPT) ${DEPENDENCYFLAG} 
-
 MYDEFINES=-D_FILE_OFFSET_BITS=64 -I$(PIN_ROOT)/source/tools/InstLib  -I/usr/include/x86_64-linux-gnu/bits/types/ -I../Include
-
-#CXXFLAGS += ${MYDEFINES}
-#CXXFLAGS += ${WARNINGS} $(DBG) $(OPT) ${DEPENDENCYFLAG} 
 
 TOOLNAMES=xpu-pin-kernelsampler 
 

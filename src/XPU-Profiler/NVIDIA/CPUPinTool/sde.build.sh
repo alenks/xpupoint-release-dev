@@ -33,7 +33,6 @@ fi
 
 rm -rf obj-intel64
 export PYTHONPATH=$SDE_BUILD_KIT/pinplay-scripts:$MBUILD
-#./mfile.py --host-cpu x86-64 --debug
 ./mfile.py --host-cpu x86-64 
 cd ../NVBitTool
 make clean; make

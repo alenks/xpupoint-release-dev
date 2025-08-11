@@ -11,9 +11,9 @@ then
   echo "Set GTPIN_KIT to point to the 'Profilers' directory from the latest GT-Pin kit ( see from https://www.intel.com/content/www/us/en/developer/articles/tool/gtpin.html )."
   exit 1
 fi
-if [ -z $PB2ELF ];
+if [ -z $LTE_LIB_HOME ];
 then
-  echo "Set PB2ELF to point to the latest pinball2elf sources :  http://github.com/intel/pinball2elf.git"
+  echo "Set LTE_LIB_HOME to point to lte lib dir."
   exit 1
 fi
 make clean; make DEBUG=1 

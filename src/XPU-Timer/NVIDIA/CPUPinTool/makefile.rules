@@ -15,7 +15,6 @@
 ###### Place all generic definitions here ######
 
 PIN_ROOT?=$(shell pwd | sed '/extras.*/s///g')
-LTE_LIB_HOME=$(PB2ELF)/src/lib
 P2BLIBS=-lcle -lperfle
 
 OPT?=-O2
@@ -25,7 +24,6 @@ CXXFLAGS = -D_FILE_OFFSET_BITS=64 -I$(PIN_ROOT)/source/tools/InstLib -I$(LTE_LIB
 
 CXXFLAGS += ${WARNINGS} $(DBG) $(OPT) ${DEPENDENCYFLAG} 
 
-#TOOLNAMES=xpu-pin-driver xpu-pin-nvbit-driver xpu-pin-nvbit-handler
 TOOLNAMES=xpu-pin-nvbit-handler 
 
 TOOLS=${TOOLNAMES:%=$(OBJDIR)$(PINTOOL_PREFIX)%$(PINTOOL_SUFFIX)}
@@ -109,8 +107,6 @@ $(OBJDIR)%.${OBJEXT}: %.cpp
 
 $(OBJDIR)xpu-pin-nvbit-handler$(PINTOOL_SUFFIX): $(OBJDIR)xpu-pin-nvbit-handler.${OBJEXT} 
 	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS) $(PIN_LIBS) $(DBG)
-
-## cleaning
 
 ## cleaning
 localclean: 

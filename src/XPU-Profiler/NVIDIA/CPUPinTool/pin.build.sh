@@ -16,9 +16,9 @@ then
   echo "Set NVBIT_KIT to point to the latest NVBit kit from https://github.com/NVlabs/NVBit/releases"
   exit 1
 fi
-if [ -z $PB2ELF ];
+if [ -z $LTE_LIB_HOME ];
 then
-  echo "Set PB2ELF to point to the latest pinball2elf sources :  http://github.com/intel/pinball2elf.git"
+  echo "Set LTE_LIB_HOME to point to the lte lib dir."
   exit 1
 fi
 make clean; make

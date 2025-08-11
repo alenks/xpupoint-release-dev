@@ -8,34 +8,46 @@ NVBIT_VERSION := 1.5.5
 NVBIT_DIR := nvbit-Linux-x86_64-$(NVBIT_VERSION)
 NVBIT_URL := https://github.com/NVlabs/NVBit/releases/download/$(NVBIT_VERSION)/$(NVBIT_DIR).tar.bz2
 
-.PHONY: all cpupintool nvbittool pin-profiler pin-timer nv-profiler nv-timer
+PIN_ROOT ?= $(CURDIR)/tools/$(PIN_DIR)
+NVBIT_KIT ?= $(CURDIR)/tools/$(NVBIT_DIR)
+LTE_LIB_HOME ?= $(CURDIR)/lib/lte
+TOOLS_ROOT ?= $(CURDIR)/tools
+SIMPOINT_ROOT ?= $(TOOLS_ROOT)/simpoint
+export PIN_ROOT NVBIT_KIT LTE_LIB_HOME
+
+.PHONY: all cpupintool nvbittool pin-profiler pin-timer nv-profiler nv-timer lte-lib simpoint
 .PHONY:	clean help setup-deps download-pin download-nvbit clean-tools clean-deps
 
-all: setup-deps cpupintool nvbittool
+all: setup-deps cpupintool nvbittool simpoint
 
 setup-deps: download-pin download-nvbit
 
 download-pin:
-	@if [ ! -d "$(PIN_DIR)" ]; then \
+	@if [ ! -d "$(TOOLS_ROOT)/$(PIN_DIR)" ]; then \
 		echo "Pin not found, downloading Pin $(PIN_VERSION)..."; \
-		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C tools/ ; \
+		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C $(TOOLS_ROOT)/ ; \
 	else \
 		echo "Pin $(PIN_VERSION) already exists"; \
 	fi
 
 download-nvbit:
-	@if [ ! -d "$(NVBIT_DIR)" ]; then \
+	@if [ ! -d "$(TOOLS_ROOT)/$(NVBIT_DIR)" ]; then \
 		echo "NVBit not found, downloading NVBit $(NVBIT_VERSION)..."; \
-		mkdir -p tools/$(NVBIT_DIR) ; \
-		wget -O - $(NVBIT_URL) --no-check-certificate --quiet --show-progress | tar -xf - -j --strip-components=1 -C tools/$(NVBIT_DIR) ; \
+		mkdir -p $(TOOLS_ROOT)/$(NVBIT_DIR) ; \
+		wget -O - $(NVBIT_URL) --no-check-certificate --quiet --show-progress | tar -xf - -j --strip-components=1 -C $(TOOLS_ROOT)/$(NVBIT_DIR) ; \
 	else \
 		echo "NVBit $(NVBIT_VERSION) already exists"; \
 	fi
 
-pin-profiler:
+lte-lib:
+	@if [ ! -f $(LTE_LIB_HOME)/libcle.a ]; then \
+		$(MAKE) -C $(LTE_LIB_HOME); \
+	fi
+
+pin-profiler: lte-lib
 	$(MAKE) -C src/XPU-Profiler/NVIDIA/CPUPinTool
 
-pin-timer:
+pin-timer: lte-lib
 	$(MAKE) -C src/XPU-Timer/NVIDIA/CPUPinTool
 
 nv-profiler:
@@ -48,18 +60,26 @@ cpupintool: download-pin pin-profiler pin-timer
 
 nvbittool: download-nvbit nv-profiler nv-timer
 
+simpoint:
+	@if [ ! -f $(SIMPOINT_ROOT)/simpoint ]; then \
+		$(MAKE) -C $(SIMPOINT_ROOT); \
+	fi
+
 clean: clean-tools clean-deps
 
 clean-tools:
 	-$(MAKE) -C src/XPU-Profiler/NVIDIA/CPUPinTool clean
 	-$(MAKE) -C src/XPU-Profiler/NVIDIA/NVBitTool clean
+	-$(MAKE) -C $(LTE_LIB_HOME) clean
+	-$(MAKE) -C $(SIMPOINT_ROOT) clean
 
 clean-deps:
-	-rm -rf tools/$(PIN_DIR) tools/$(NVBIT_DIR)
+	-rm -rf $(TOOLS_ROOT)/$(PIN_DIR) $(TOOLS_ROOT)/$(NVBIT_DIR)
 
 help:
 	@echo "Available targets for NVIDIA build:"
 	@echo "  all         - Build both CPUPinTool and NVBitTool (default)"
 	@echo "  cpupintool  - Build only CPUPinTool"
 	@echo "  nvbittool   - Build only NVBitTool"
+	@echo "  simpoint    - Build only SimPoint"
 	@echo "  clean       - Clean all NVIDIA build artifacts"
