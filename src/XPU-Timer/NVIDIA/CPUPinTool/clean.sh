@@ -3,5 +3,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
 set -x
 make clean
-cd ../NVBitTool/
-make clean
+rm -r -f pin.log obj-*
+make -C ../NVBitTool clean

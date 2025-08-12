@@ -18,3 +18,4 @@ tools/gtpin-*
 tools/nvbit-*
 tools/cmake-*
 benchmarks/gromacs/Install/
+tools/simpoint/simpoint

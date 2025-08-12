@@ -8,12 +8,12 @@ GTPIN_VERSION := 4.5.0
 GTPIN_DIR := gtpin-4.5.0-linux
 GTPIN_URL := https://downloadmirror.intel.com/856505/external-release-$(GTPIN_DIR).tar.xz
 
-PIN_ROOT ?= $(CURDIR)/tools/$(PIN_DIR)
-GTPIN_KIT ?= $(CURDIR)/tools/$(GTPIN_DIR)
+TOOLS_DIR ?= $(CURDIR)/tools
+PIN_ROOT ?= $(TOOLS_DIR)/$(PIN_DIR)
+GTPIN_KIT ?= $(TOOLS_DIR)/$(GTPIN_DIR)
 LTE_LIB_HOME ?= $(CURDIR)/lib/lte
-TOOLS_ROOT ?= $(CURDIR)/tools
-SIMPOINT_ROOT ?= $(TOOLS_ROOT)/simpoint
-export PIN_ROOT GTPIN_KIT LTE_LIB_HOME
+SIMPOINT_ROOT ?= $(TOOLS_DIR)/simpoint
+.EXPORT_ALL_VARIABLES:
 
 .PHONY: all cpupintool gtpintool pin-profiler pin-timer gt-profiler gt-timer lte-lib simpoint
 .PHONY: clean help setup-deps download-pin download-gtpin clean-tools clean-deps
@@ -23,18 +23,18 @@ all: setup-deps cpupintool gtpintool simpoint
 setup-deps: download-pin download-gtpin
 
 download-pin:
-	@if [ ! -d "$(TOOLS_ROOT)/$(PIN_DIR)" ]; then \
+	@if [ ! -d "$(TOOLS_DIR)/$(PIN_DIR)" ]; then \
 		echo "Pin not found, downloading Pin $(PIN_VERSION)..."; \
-		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C $(TOOLS_ROOT)/ ; \
+		wget -O - $(PIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -z -C $(TOOLS_DIR)/ ; \
 	else \
 		echo "Pin $(PIN_VERSION) already exists"; \
 	fi
 
 download-gtpin:
-	@if [ ! -d "$(TOOLS_ROOT)/$(GTPIN_DIR)" ]; then \
+	@if [ ! -d "$(TOOLS_DIR)/$(GTPIN_DIR)" ]; then \
 		echo "GTPin not found, downloading GTPin $(GTPIN_VERSION)..."; \
-		mkdir -p $(TOOLS_ROOT)/$(GTPIN_DIR) ; \
-		wget -O - $(GTPIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -J --strip-components=1 -C $(TOOLS_ROOT)/$(GTPIN_DIR) ; \
+		mkdir -p $(TOOLS_DIR)/$(GTPIN_DIR) ; \
+		wget -O - $(GTPIN_URL) --no-check-certificate --quiet --show-progress | tar -xf - -J --strip-components=1 -C $(TOOLS_DIR)/$(GTPIN_DIR) ; \
 	else \
 		echo "GTPin $(GTPIN_VERSION) already exists"; \
 	fi
@@ -78,11 +78,13 @@ clean: clean-tools clean-deps
 clean-tools:
 	-$(MAKE) -C src/XPU-Profiler/Intel/CPUPinTool clean
 	-$(MAKE) -C src/XPU-Profiler/Intel/GTPinTool/build clean
+	-$(MAKE) -C src/XPU-Timer/Intel/CPUPinTool clean
+	-$(MAKE) -C src/XPU-Timer/Intel/GTPinTool/build clean
 	-$(MAKE) -C $(LTE_LIB_HOME) clean
 	-$(MAKE) -C $(SIMPOINT_ROOT) clean
 
 clean-deps:
-	-rm -rf $(TOOLS_ROOT)/$(PIN_DIR) $(TOOLS_ROOT)/$(GTPIN_DIR)
+	-rm -rf $(TOOLS_DIR)/$(PIN_DIR) $(TOOLS_DIR)/$(GTPIN_DIR)
 
 help:
 	@echo "Available targets for Intel build:"

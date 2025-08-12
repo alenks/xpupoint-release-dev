@@ -63,6 +63,13 @@ clean-bench: $(addprefix clean-bench-,$(BENCHMARKS))
 clean-bench-%:
 	-$(MAKE) -C "benchmarks/$*" -f "Makefile" clean
 
+docker:
+		$(MAKE) -f Makefile.docker help
+
+# Usage: make docker.<command>, e.g., make docker.build, make docker.run
+docker.%:
+	$(MAKE) -f Makefile.docker $*
+
 help:
 	@echo "XPU-Point Build System"
 	@echo "======================"
@@ -74,6 +81,10 @@ help:
 	@echo "Manual selection:"
 	@echo "  make Intel   - Build using Intel-specific configuration"
 	@echo "  make NVIDIA  - Build using NVIDIA-specific configuration"
+	@echo ""
+	@echo "Docker Management:"
+	@echo "  make docker.build	- Build the default Docker image"
+	@echo "  make docker.run    - Run the default Docker image"
 	@echo ""
 	@echo "Cleaning:"
 	@echo "  make clean       - Clean all build artifacts (Intel + NVIDIA)"
@@ -95,6 +106,7 @@ help:
 	@echo "For more specific help:"
 	@echo "  make Intel.help   - Show Intel-specific targets"
 	@echo "  make NVIDIA.help  - Show NVIDIA-specific targets"
+	@echo "  make docker.help  - Show docker-specific targets"
 
 Intel.%:
 	$(MAKE) -f Makefile.Intel $*
