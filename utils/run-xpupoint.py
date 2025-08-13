@@ -55,7 +55,7 @@ class Runner:
     self.log.info(f"Output directory: {out.absolute()}")
   
   def run_gpu(self):
-    self.log.info("Running GPU-only pipeline")
+    self.log.info("Running GPU-only analysis")
     
     bbv = Path(self.args.gpudir) / 'global.bbv'
     if not bbv.exists():
@@ -90,7 +90,7 @@ class Runner:
     gen_insweights.main(self.args.outdir, str(gpu_out / 'global.bbv'))
   
   def run_full(self):
-    self.log.info("Running XPU profile")
+    self.log.info("Running XPU analysis")
     
     if not self.args.simpoint_only:
       gpu_out = Path(self.args.gpudir) / 'gpu-perthread'
@@ -138,10 +138,10 @@ class Runner:
       else:
         self.run_full()
       
-      self.log.info("Pipeline completed successfully")
+      self.log.info("Analysis completed successfully")
       
     except Exception as e:
-      self.log.error(f"Pipeline failed: {e}")
+      self.log.error(f"Analysis failed: {e}")
       if self.args.verbose:
         raise
       sys.exit(1)

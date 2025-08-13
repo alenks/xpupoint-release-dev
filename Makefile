@@ -1,8 +1,10 @@
 # Main Makefile
 
-.PHONY: auto Intel NVIDIA help clean detect-gpu clean-intel clean-nvidia benchmark \
-		bench-intel bench-nvidia clean-bench $(addprefix build-intel-,$(BENCHMARKS)) \
-		$(addprefix build-nvidia-,$(BENCHMARKS)) $(addprefix clean-bench-,$(BENCHMARKS))
+.PHONY: auto Intel intel INTEL NVIDIA nvidia Nvidia help clean detect-gpu \
+		clean-intel clean-nvidia benchmark bench-intel bench-nvidia clean-bench \
+		$(addprefix build-intel-,$(BENCHMARKS)) \
+		$(addprefix build-nvidia-,$(BENCHMARKS)) \
+		$(addprefix clean-bench-,$(BENCHMARKS))
 
 BENCHMARK_DIRS := $(wildcard benchmarks/*)
 BENCHMARKS := $(notdir $(BENCHMARK_DIRS))
@@ -31,9 +33,15 @@ Intel:
 	$(MAKE) -f Makefile.Intel
 	$(MAKE) bench-intel
 
+intel: Intel
+INTEL: Intel
+
 NVIDIA:
 	$(MAKE) -f Makefile.NVIDIA
 	$(MAKE) bench-nvidia
+
+nvidia: NVIDIA
+Nvidia: NVIDIA
 
 bench-intel: $(addprefix build-intel-,$(BENCHMARKS))
 

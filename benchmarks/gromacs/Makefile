@@ -4,7 +4,7 @@ GROMACS_VERSION := 2023.3
 GROMACS_URL := https://ftp.gromacs.org/gromacs/gromacs-$(GROMACS_VERSION).tar.gz
 GROMACS_DIR := gromacs-$(GROMACS_VERSION)
 BUILD_DIR := $(GROMACS_DIR)/build
-INSTALL_DIR := $(PWD)/Install
+INSTALL_DIR := $(PWD)/install
 
 ifndef PROJ_ROOT
 	PROJ_ROOT := $(abspath $(CURDIR)/../..)
@@ -16,12 +16,13 @@ CMAKE_DIR := $(TOOLS_DIR)/cmake-$(CMAKE_VERSION)-linux-x86_64
 CMAKE_BIN := $(CMAKE_DIR)/bin/cmake
 
 
-TEST_DIR := test
+INPUT_DIR := $(PWD)/input
 BENCHMEM_URL := https://www.mpinat.mpg.de/benchMEM
 BENCHMEM_ZIP := benchMEM.zip
+BENCHMEM_FILE := benchMEM.tpr
 
-.PHONY: all help download build-intel build-nvidia testcase cmake
-.PHONY: intel nvidia clean-install clean-test clean-cmake clean
+.PHONY: all help download build-intel build-nvidia benchmem tests cmake
+.PHONY: intel nvidia clean-install clean-benchmem clean-tests clean-cmake clean
 
 all: help
 
@@ -71,33 +72,54 @@ build-nvidia: download cmake
 	$(MAKE) -j$(shell nproc) && \
 	$(MAKE) install
 
-testcase:
-	@mkdir -p $(TEST_DIR)
-	@cd $(TEST_DIR) && \
-	if [ ! -f "$(BENCHMEM_ZIP)" ]; then \
-		wget -O $(BENCHMEM_ZIP) $(BENCHMEM_URL) || curl -L -o $(BENCHMEM_ZIP) $(BENCHMEM_URL); \
+benchmem:
+	@mkdir -p $(INPUT_DIR)
+	@cd $(INPUT_DIR) && \
+	if [ ! -f "$(BENCHMEM_FILE)" ]; then \
+		wget -O $(BENCHMEM_ZIP) $(BENCHMEM_URL) --no-check-certificate --quiet --show-progress; \
 		if [ -f "$(BENCHMEM_ZIP)" ]; then \
 			unzip -q $(BENCHMEM_ZIP) || echo "Note: unzip failed, please extract manually"; \
+			rm -f $(BENCHMEM_ZIP); \
 		else \
 			echo "Failed to download benchMEM. Please download manually from $(BENCHMEM_URL)"; \
 		fi; \
 	fi
 
-intel: build-intel testcase
+tests:
+	@for testcase in tests/*/; do \
+		if [ -d "$$testcase" ]; then \
+			cp -r input/* "$$testcase/"; \
+			cp -r scripts/* "$$testcase/"; \
+			for script in "$$testcase"/*.sh; do \
+				if [ -f "$$script" ]; then \
+					sed -i '2i source $(INSTALL_DIR)/bin/GMXRC' "$$script"; \
+				fi; \
+			done; \
+		fi; \
+	done
 
-nvidia: build-nvidia testcase
+intel: build-intel benchmem
+
+nvidia: build-nvidia benchmem
 
 clean-install:
 	-rm -rf $(BUILD_DIR)
 	-rm -rf $(INSTALL_DIR)
 
-clean-test:
-	-rm -rf $(TEST_DIR)
+clean-benchmem:
+	-rm -rf $(INPUT_DIR)
 
 clean-cmake:
 	-rm -rf $(CMAKE_DIR)
 
-clean: clean-install clean-test
+clean-tests:
+	@for testcase in tests/*/; do \
+		if [ -d "$$testcase" ]; then \
+			find "$$testcase" -mindepth 1 -name "COMMAND.sh" -prune -o -type f -exec rm -f {} \; -o -type d -exec rm -rf {} \; 2>/dev/null || true; \
+		fi; \
+	done
+
+clean: clean-install clean-benchmem clean-tests
 	-rm -rf $(GROMACS_DIR)
 
 help:
@@ -105,16 +127,18 @@ help:
 	@echo "======================="
 	@echo ""
 	@echo "Platform targets:"
-	@echo "  intel           - Build benchmark and testcase for Intel GPU"
-	@echo "  nvidia          - Build benchmark and testcase for NVIDIA GPU"
+	@echo "  intel           - Build and setup benchmark for Intel GPU"
+	@echo "  nvidia          - Build and setup benchmark for NVIDIA GPU"
 	@echo ""
 	@echo "Setup targets:"
 	@echo "  download      - Download GROMACS source code"
 	@echo "  build-intel   - Build GROMACS for Intel GPU"
 	@echo "  build-nvidia  - Build GROMACS for NVIDIA GPU"
-	@echo "  testcase      - Download benchMEM"
+	@echo "  benchmem      - Download benchMEM"
+	@echo "  tests         - Setup test cases"
 	@echo ""
 	@echo "Cleaning targets:"
 	@echo "  clean-install   - Clean GROMACS build artifacts"
-	@echo "  clean-test      - Clean benchmark test files"
+	@echo "  clean-benchmem  - Clean benchMEM files"
+	@echo "  clean-tests     - Clean test case directory files"
 	@echo "  clean           - Clean everything including source"

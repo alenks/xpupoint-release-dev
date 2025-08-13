@@ -17,5 +17,6 @@ tools/pin-*
 tools/gtpin-*
 tools/nvbit-*
 tools/cmake-*
-benchmarks/gromacs/Install/
+benchmarks/gromacs/install
+benchmarks/gromacs/input
 tools/simpoint/simpoint

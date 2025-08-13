@@ -1,16 +1,21 @@
 SHELL := /bin/bash
-NVIDIA_UBUNTU_VERSION?=20.04
-INTEL_UBUNTU_VERSION?=22.04
-TOOL?=xpu-nvidia
+NVIDIA_UBUNTU_VER?=20.04
+INTEL_UBUNTU_VER?=22.04
+GPU?=NVIDIA
+override GPU := $(shell printf '%s' "$(GPU)" | tr '[:lower:]' '[:upper:]')
 
-ifeq ($(TOOL),xpu-nvidia)
-	DOCKER_FILE := Dockerfile-ubuntu-$(NVIDIA_UBUNTU_VERSION)-cuda
-	DOCKER_IMAGE := ubuntu:$(NVIDIA_UBUNTU_VERSION)-$(TOOL)
-else ifeq ($(TOOL),xpu-intel)
-	DOCKER_FILE := Dockerfile-ubuntu-$(INTEL_UBUNTU_VERSION)-oneapi
-	DOCKER_IMAGE := ubuntu:$(INTEL_UBUNTU_VERSION)-$(TOOL)
+ifeq ($(GPU),NVIDIA)
+TOOL := xpu-nvidia
+DOCKER_FILE := Dockerfile-ubuntu-$(NVIDIA_UBUNTU_VER)-cuda
+DOCKER_IMAGE := ubuntu:$(NVIDIA_UBUNTU_VER)-$(TOOL)
+DOCKER_RUN_GPU_OPT := --gpus all
+else ifeq ($(GPU),INTEL)
+TOOL := xpu-intel
+DOCKER_FILE := Dockerfile-ubuntu-$(INTEL_UBUNTU_VER)-oneapi
+DOCKER_IMAGE := ubuntu:$(INTEL_UBUNTU_VER)-$(TOOL)
+DOCKER_RUN_GPU_OPT := --device=/dev/dri
 else
-	$(error "TOOL must be 'xpu-nvidia' or 'xpu-intel'")
+$(error GPU must be 'Intel' or 'NVIDIA')
 endif
 
 DOCKER_FILES=$(wildcard Dockerfile*)
@@ -23,12 +28,6 @@ TZFULL=$(subst /, ,$(shell readlink /etc/localtime))
 TZ=$(word $(shell expr $(words $(TZFULL)) - 1 ),$(TZFULL))/$(word $(words $(TZFULL)),$(TZFULL))
 
 .PHONY: run run-root-cwd run-root build build-all
-
-ifeq ($(TOOL),xpu-nvidia)
-	DOCKER_RUN_GPU_OPT := --gpus all
-else ifeq ($(TOOL),xpu-intel)
-	DOCKER_RUN_GPU_OPT := --device=/dev/dri
-endif
 
 run:
 	docker run $(DOCKER_RUN_GPU_OPT) --rm -it -v "${PWD}:${PWD}" --user $(shell id -u):$(shell id -g) -w "${PWD}" $(DOCKER_IMAGE)
@@ -50,7 +49,7 @@ help:
 	@echo "Docker Management"
 	@echo "================="
 	@echo ""
-	@echo "  build         - Build the default Docker image (ubuntu:$(UBUNTU_VERSION)-$(TOOL))"
+	@echo "  build         - Build the default Docker image ($(DOCKER_IMAGE))"
 	@echo "  build-all     - Build all Docker images found in Dockerfile-*"
 	@echo "  run           - Run the default Docker image as current user with PWD mounted"
 	@echo "  run-root      - Run the default Docker image as root with PWD mounted"

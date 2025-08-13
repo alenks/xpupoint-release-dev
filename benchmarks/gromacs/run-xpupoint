@@ -1,0 +1,125 @@
+#!/bin/bash
+
+show_usage() {
+    echo "Usage: $0 <testcase|all>"
+    echo "  all: Run all testcases"
+    echo ""
+    echo "Available testcases:"
+    for testcase in tests/*/; do
+        if [ -d "$testcase" ]; then
+            printf "  %s" "$(basename "$testcase")"
+        fi
+    done
+    echo ""
+}
+
+run_testcase() {
+    local testcase=$1
+    local testdir="tests/$testcase"
+    
+    if [ ! -d "$testdir" ]; then
+        echo "Error: Testcase '$testcase' does not exist!"
+        return 1
+    fi
+    
+    echo "=========================================="
+    echo "Running testcase: $testcase"
+    echo "=========================================="
+    
+    cd "$testdir" || {
+        echo "Error: Cannot enter directory $testdir"
+        return 1
+    }
+    
+    # Detect which xpuprofiler script to use based on available scripts
+    if [ -f "run.xpuprofiler.intel.sh" ]; then
+        echo "Running xpuprofiler (Intel)..."
+        bash run.xpuprofiler.intel.sh
+        profiler_exit_code=$?
+        
+        if [ $profiler_exit_code -eq 0 ]; then
+            echo "Running xputimer (Intel)..."
+            bash run.xputimer.intel.sh
+            timer_exit_code=$?
+        else
+            echo "xpuprofiler failed, skipping xputimer"
+            timer_exit_code=1
+        fi
+    elif [ -f "run.xpuprofiler.nvidia.sh" ]; then
+        echo "Running xpuprofiler (NVIDIA)..."
+        bash run.xpuprofiler.nvidia.sh
+        profiler_exit_code=$?
+        
+        if [ $profiler_exit_code -eq 0 ]; then
+            echo "Running xputimer (NVIDIA)..."
+            bash run.xputimer.nvidia.sh
+            timer_exit_code=$?
+        else
+            echo "xpuprofiler failed, skipping xputimer"
+            timer_exit_code=1
+        fi
+    else
+        echo "Error: No xpuprofiler script found in $testdir"
+        cd - > /dev/null
+        return 1
+    fi
+    
+    cd - > /dev/null
+    
+    if [ $profiler_exit_code -eq 0 ] && [ $timer_exit_code -eq 0 ]; then
+        echo "Testcase '$testcase' completed successfully"
+        return 0
+    else
+        echo "Testcase '$testcase' failed"
+        return 1
+    fi
+}
+
+# Main script logic
+if [ $# -eq 0 ]; then
+    show_usage
+    exit 1
+fi
+
+case "$1" in
+    "all")
+        echo "Running all testcases..."
+        failed_tests=()
+        successful_tests=()
+        
+        for testcase_dir in tests/*/; do
+            if [ -d "$testcase_dir" ]; then
+                testcase=$(basename "$testcase_dir")
+                if run_testcase "$testcase"; then
+                    successful_tests+=("$testcase")
+                else
+                    failed_tests+=("$testcase")
+                fi
+                echo ""
+            fi
+        done
+        
+        echo "=========================================="
+        echo "SUMMARY"
+        echo "=========================================="
+        echo "Successful tests (${#successful_tests[@]}): ${successful_tests[*]}"
+        echo "Failed tests (${#failed_tests[@]}): ${failed_tests[*]}"
+        
+        if [ ${#failed_tests[@]} -eq 0 ]; then
+            echo "All tests passed!"
+            exit 0
+        else
+            echo "Some tests failed!"
+            exit 1
+        fi
+        ;;
+    "help"|"-h"|"--help")
+        show_usage
+        exit 0
+        ;;
+    *)
+        # Single testcase
+        run_testcase "$1"
+        exit $?
+        ;;
+esac
