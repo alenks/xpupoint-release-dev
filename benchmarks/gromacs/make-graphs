@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import argparse
+import glob
+import re
+from pathlib import Path
+
+def find_results_dir(testcase_dir, results_dir_name):
+  results_path = os.path.join(testcase_dir, results_dir_name)
+  if os.path.isdir(results_path):
+    return results_path
+  
+  # common result directories
+  for pattern in ['*results*', '*profile*', '*output*']:
+    matches = glob.glob(os.path.join(testcase_dir, pattern))
+    for match in matches:
+      if os.path.isdir(match):
+        return match
+  
+  return None
+
+def analyze_testcase(testcase_dir, results_dir_name):
+  testcase_name = os.path.basename(testcase_dir.rstrip('/'))
+  
+  results_dir = find_results_dir(testcase_dir, results_dir_name)
+  if not results_dir:
+    return None
+  
+  trace_file = os.path.join(results_dir, 'slice.trace.txt')
+  if not os.path.exists(trace_file):
+    return None
+  
+  try:
+    with open(trace_file, 'r') as f:
+      lines = f.readlines()
+    
+    # Extract WholeProgram RDTSC
+    whole_rdtsc = None
+    for line in lines:
+      if 'WholeProgram' in line:
+        whole_rdtsc = int(line.split()[-1])
+        break
+    
+    if whole_rdtsc is None:
+      return None
+    
+    slice_lines = [line for line in lines if '.' in line and 'Whole' not in line and 'Slice' not in line]
+    num_slices = len([line for line in lines if 'Whole' not in line and 'Slice' not in line and line.strip()])
+    
+    if num_slices == 0:
+      return None
+    
+    predicted_sum = 0
+    for line in slice_lines:
+      clean_line = line.replace(',', '')
+      parts = clean_line.split()
+      if len(parts) >= 6:
+        try:
+          rdtsc = float(parts[1])
+          mult_factor = float(parts[4])
+          predicted_sum += mult_factor * num_slices * rdtsc
+        except (ValueError, IndexError):
+          continue
+    
+    predicted_rdtsc = int(predicted_sum)
+    error = (whole_rdtsc - predicted_rdtsc) / whole_rdtsc * 100
+    
+    return {
+      'testcase': testcase_name,
+      'actual': whole_rdtsc,
+      'predicted': predicted_rdtsc,
+      'error': error
+    }
+    
+  except (IOError, ValueError) as e:
+    return None
+
+def plot_results(results):
+  try:
+    import matplotlib.pyplot as plt
+    import numpy as np
+  except ImportError:
+    print("Error: matplotlib not available. Install with: pip install matplotlib")
+    return
+  
+  if not results:
+    print("No data to plot.")
+    return
+  
+  testcases = [r['testcase'] for r in results]
+  errors = [r['error'] for r in results]
+  
+  fig, ax = plt.subplots(figsize=(12, 6))
+  bars = ax.bar(testcases, errors, alpha=0.7, color='steelblue')
+  ax.axhline(y=0, color='red', linestyle='--', alpha=0.5, label='Perfect Prediction')
+  
+  ax.set_xlabel('Testcase')
+  ax.set_ylabel('Prediction Error (%)')
+  ax.set_title('RDTSC Prediction Error by Testcase')
+  ax.grid(True, alpha=0.3)
+  ax.legend()
+  
+  for bar, error in zip(bars, errors):
+    height = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width()/2., height + (0.5 if height >= 0 else -1.5),
+            f'{error:.1f}%', ha='center', va='bottom' if height >= 0 else 'top')
+  
+  if len(testcases) > 6:
+    plt.xticks(rotation=45, ha='right')
+  
+  plt.tight_layout()
+  plt.show()
+
+def main():
+  parser = argparse.ArgumentParser(description='Analyze RDTSC results from all testcase directories')
+  parser.add_argument('results_dir', nargs='?', default='results',
+                      help='Results directory name (default: results)')
+  parser.add_argument('--plot', '-p', action='store_true',
+                      help='Plot error bars graph')
+  parser.add_argument('--tests-dir', default='tests',
+                      help='Directory containing testcases (default: tests)')
+  
+  args = parser.parse_args()
+  
+  testcase_pattern = os.path.join(args.tests_dir, '*')
+  testcase_dirs = [d for d in glob.glob(testcase_pattern) if os.path.isdir(d)]
+  
+  if not testcase_dirs:
+    print(f"No testcase directories found in {args.tests_dir}/")
+    sys.exit(1)
+  
+  results = []
+  for testcase_dir in sorted(testcase_dirs):
+    result = analyze_testcase(testcase_dir, args.results_dir)
+    if result:
+      results.append(result)
+  
+  if not results:
+    print("No valid results found in any testcase.")
+    sys.exit(1)
+  
+  print("Test, Actual, Extrapolated, Error")
+  print("=" * 45)
+  
+  for result in results:
+    print(f"{result['testcase']}, {result['actual']}, {result['predicted']}, {result['error']:.2f}%")
+  
+  print()
+  print("=" * 45)
+  print("SUMMARY")
+  print("=" * 45)
+  print(f"Total testcases analyzed: {len(results)}")
+  
+  errors = [r['error'] for r in results]
+  avg_error = sum(errors) / len(errors)
+  min_error = min(errors)
+  max_error = max(errors)
+  
+  min_testcase = next(r['testcase'] for r in results if r['error'] == min_error)
+  max_testcase = next(r['testcase'] for r in results if r['error'] == max_error)
+  
+  print(f"Average prediction error: {avg_error:.2f}%")
+  print(f"Best prediction (lowest error): {min_testcase} ({min_error:.2f}%)")
+  print(f"Worst prediction (highest error): {max_testcase} ({max_error:.2f}%)")
+  
+  if args.plot:
+    plot_results(results)
+
+if __name__ == "__main__":
+  main()

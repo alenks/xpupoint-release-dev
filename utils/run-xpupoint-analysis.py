@@ -149,7 +149,7 @@ class Runner:
 
 def get_args():
   p = argparse.ArgumentParser(
-    description="Run XPU-Point profile",
+    description="Run XPU-Point post-profile analysis",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
   )
   

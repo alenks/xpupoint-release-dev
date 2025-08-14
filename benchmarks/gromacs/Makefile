@@ -15,11 +15,12 @@ CMAKE_URL := https://github.com/Kitware/CMake/releases/download/v$(CMAKE_VERSION
 CMAKE_DIR := $(TOOLS_DIR)/cmake-$(CMAKE_VERSION)-linux-x86_64
 CMAKE_BIN := $(CMAKE_DIR)/bin/cmake
 
-
 INPUT_DIR := $(PWD)/input
 BENCHMEM_URL := https://www.mpinat.mpg.de/benchMEM
 BENCHMEM_ZIP := benchMEM.zip
 BENCHMEM_FILE := benchMEM.tpr
+
+SCRIPTS_DIR ?=
 
 .PHONY: all help download build-intel build-nvidia benchmem tests cmake
 .PHONY: intel nvidia clean-install clean-benchmem clean-tests clean-cmake clean
@@ -89,18 +90,25 @@ tests:
 	@for testcase in tests/*/; do \
 		if [ -d "$$testcase" ]; then \
 			cp -r input/* "$$testcase/"; \
-			cp -r scripts/* "$$testcase/"; \
-			for script in "$$testcase"/*.sh; do \
+			cp -r scripts/$(SCRIPTS_DIR)/* "$$testcase/"; \
+			for script in "$$testcase"/run.*.sh; do \
 				if [ -f "$$script" ]; then \
+					sed -i '2i PROJ_ROOT=$(PROJ_ROOT)' "$$script"; \
 					sed -i '2i source $(INSTALL_DIR)/bin/GMXRC' "$$script"; \
 				fi; \
 			done; \
 		fi; \
 	done
 
-intel: build-intel benchmem
+intel-tests: SCRIPTS_DIR=intel
+intel-tests: tests
 
-nvidia: build-nvidia benchmem
+nvidia-tests: SCRIPTS_DIR=nvidia
+nvidia-tests: tests
+
+intel: build-intel benchmem intel-tests
+
+nvidia: build-nvidia benchmem nvidia-tests
 
 clean-install:
 	-rm -rf $(BUILD_DIR)

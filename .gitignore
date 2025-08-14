@@ -20,3 +20,8 @@ tools/cmake-*
 benchmarks/gromacs/install
 benchmarks/gromacs/input
 tools/simpoint/simpoint
+benchmarks/gromacs/tests/*/run*.sh
+benchmarks/gromacs/tests/*/benchMEM.tpr
+benchmarks/gromacs/tests/*/confout.gro
+benchmarks/gromacs/tests/*/ener.edr
+benchmarks/gromacs/tests/*/state.cpt
