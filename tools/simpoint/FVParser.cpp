@@ -103,7 +103,7 @@ bool FVParser::nextLine(list<FVParserToken> *result) {
     string line;
     buffer[0] = '\0';
     do {
-        fgets(buffer, BUF_SIZE, input);
+        if (!fgets(buffer, BUF_SIZE, input)) { break; }
     } while ((! eof()) && ((strlen(buffer) == 0) || ('T' != buffer[0])));
     Utilities::check(strlen(buffer) != BUF_SIZE - 1,
             "FVParser::nextLine() lines are too long for buffer");

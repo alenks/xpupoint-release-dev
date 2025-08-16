@@ -224,7 +224,10 @@ void Datapoint::read(istream &is) {
 
 void Datapoint::read(FILE *in) {
     unsigned int length;
-    fscanf(in, "%u", &length);
+    if (fscanf(in, "%u", &length) != 1) {
+        fprintf(stderr, "Error reading from file.\n");
+        return;
+    }
 
     char c = fgetc(in);
     Utilities::check(':' == c, "Datapoint::read() missing : separator");
@@ -232,7 +235,10 @@ void Datapoint::read(FILE *in) {
     resize(length);
 
     for (unsigned int i = 0; i < length; i++) {
-        fscanf(in, "%lf", &(*this)[i]);
+        if (fscanf(in, "%lf", &(*this)[i]) != 1) {
+            fprintf(stderr, "Error reading from file.\n");
+            return;
+        }
     }
 }
 
@@ -261,10 +267,16 @@ void Datapoint::readBinary(istream &is) {
 
 void Datapoint::readBinary(FILE *in) {
     unsigned int length;
-    fread((void *)&length, sizeof(unsigned int), 1, in);
+    if (fread((void *)&length, sizeof(unsigned int), 1, in) != 1) {
+        fprintf(stderr, "Error reading from binary file.\n");
+        return;
+    }
     resize(length);
     Datapoint::iterator b = this->begin();
-    fread((void *)&(*b), sizeof(double), length, in);
+    if (fread((void *)&(*b), sizeof(double), length, in) != length) {
+        fprintf(stderr, "Error reading from binary file.\n");
+        return;
+    }
 }
 
 

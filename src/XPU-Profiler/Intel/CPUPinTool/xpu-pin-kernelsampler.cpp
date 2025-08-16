@@ -291,7 +291,7 @@ VOID programEnd(INT32, VOID *v)
 		}
 		fp[i] << "\n# Program End\n";
 	}
-	std::cerr << "[XPU_TRACER]["<< __FUNCTION__ <<"] Instruction Count [ ";
+	std::cerr << "[XPU_TRACER]["<< __FUNCTION__ <<"] Dynamic instruction Count [ ";
 	for (uint64_t i = 0 ; i <= atomic_get(&max_thread_id) ; i++) {
 		fp[i].flush();
 		fp[i].close();

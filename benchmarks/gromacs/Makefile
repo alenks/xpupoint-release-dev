@@ -22,8 +22,8 @@ BENCHMEM_FILE := benchMEM.tpr
 
 SCRIPTS_DIR ?=
 
-.PHONY: all help download build-intel build-nvidia benchmem tests cmake
-.PHONY: intel nvidia clean-install clean-benchmem clean-tests clean-cmake clean
+.PHONY: all help download build-intel build-nvidia benchmem tests tests-intel tests-nvidia
+.PHONY: intel nvidia cmake clean-install clean-benchmem clean-tests clean-cmake clean
 
 all: help
 
@@ -91,7 +91,7 @@ tests:
 		if [ -d "$$testcase" ]; then \
 			cp -r input/* "$$testcase/"; \
 			cp -r scripts/$(SCRIPTS_DIR)/* "$$testcase/"; \
-			for script in "$$testcase"/run.*.sh; do \
+			for script in "$$testcase"/run*.sh; do \
 				if [ -f "$$script" ]; then \
 					sed -i '2i PROJ_ROOT=$(PROJ_ROOT)' "$$script"; \
 					sed -i '2i source $(INSTALL_DIR)/bin/GMXRC' "$$script"; \
@@ -100,15 +100,15 @@ tests:
 		fi; \
 	done
 
-intel-tests: SCRIPTS_DIR=intel
-intel-tests: tests
+tests-intel: SCRIPTS_DIR=intel
+tests-intel: tests
 
-nvidia-tests: SCRIPTS_DIR=nvidia
-nvidia-tests: tests
+tests-nvidia: SCRIPTS_DIR=nvidia
+tests-nvidia: tests
 
-intel: build-intel benchmem intel-tests
+intel: build-intel benchmem tests-intel
 
-nvidia: build-nvidia benchmem nvidia-tests
+nvidia: build-nvidia benchmem tests-nvidia
 
 clean-install:
 	-rm -rf $(BUILD_DIR)
@@ -127,7 +127,9 @@ clean-tests:
 		fi; \
 	done
 
-clean: clean-install clean-benchmem clean-tests
+clean: clean-install clean-tests
+
+distclean: clean-install clean-benchmem clean-tests
 	-rm -rf $(GROMACS_DIR)
 
 help:
@@ -143,7 +145,8 @@ help:
 	@echo "  build-intel   - Build GROMACS for Intel GPU"
 	@echo "  build-nvidia  - Build GROMACS for NVIDIA GPU"
 	@echo "  benchmem      - Download benchMEM"
-	@echo "  tests         - Setup test cases"
+	@echo "  tests-intel   - Setup test cases for Intel GPU"
+	@echo "  tests-nvidia  - Setup test cases for NVIDIA GPU"
 	@echo ""
 	@echo "Cleaning targets:"
 	@echo "  clean-install   - Clean GROMACS build artifacts"

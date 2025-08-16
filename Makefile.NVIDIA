@@ -16,7 +16,7 @@ SIMPOINT_ROOT := $(TOOLS_DIR)/simpoint
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: all cpupintool nvbittool pin-profiler pin-timer nv-profiler nv-timer lte-lib simpoint
-.PHONY:	clean help setup-deps download-pin download-nvbit clean-tools clean-deps
+.PHONY:	clean distclean help setup-deps download-pin download-nvbit clean-tools clean-deps
 
 all: setup-deps cpupintool nvbittool simpoint
 
@@ -65,7 +65,9 @@ simpoint:
 		$(MAKE) -C $(SIMPOINT_ROOT); \
 	fi
 
-clean: clean-tools clean-deps
+clean: clean-tools
+
+distclean: clean-tools clean-deps
 
 clean-tools:
 	-$(MAKE) -C src/XPU-Profiler/NVIDIA/CPUPinTool clean

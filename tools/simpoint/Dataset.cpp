@@ -171,7 +171,10 @@ void Dataset::read(istream &is) {
 
 void Dataset::read(FILE *in) {
     unsigned int length;
-    fscanf(in, "%u", &length);
+    if (fscanf(in, "%u", &length) != 1) {
+        fprintf(stderr, "Error reading from file.\n");
+        return;
+    }
 
     char c = fgetc(in);
     Utilities::check(':' == c, "Dataset::read() missing : separator");
@@ -186,7 +189,10 @@ void Dataset::read(FILE *in) {
 
     for (unsigned int i = 0; i < length; i++) {
         if (hasWeights) {
-            fscanf(in, "%lf", &weight);
+            if (fscanf(in, "%lf", &weight) != 1) {
+                fprintf(stderr, "Error reading from file.\n");
+                return;
+            }
             setWeight(i, weight);
         } else {
             setWeight(i, 1.0 / length);
@@ -248,17 +254,26 @@ void Dataset::readBinary(istream &is) {
 
 void Dataset::readBinary(FILE *in) {
     unsigned int length;
-    fread((void *)&length, sizeof(unsigned int), 1, in);
+    if (fread((void *)&length, sizeof(unsigned int), 1, in) != 1) {
+        fprintf(stderr, "Error reading from binary file.\n");
+        return;
+    }
 
     unsigned int hasWeights;
-    fread((void *)&hasWeights, sizeof(unsigned int), 1, in);
+    if (fread((void *)&hasWeights, sizeof(unsigned int), 1, in) != 1) {
+        fprintf(stderr, "Error reading from binary file.\n");
+        return;
+    }
 
     resize(length);
 
     double weight;
     for (unsigned int i = 0; i < length; i++) {
         if (hasWeights) {
-            fread((void *)&weight, sizeof(double), 1, in);
+            if (fread((void *)&weight, sizeof(double), 1, in) != 1) {
+                fprintf(stderr, "Error reading from binary file.\n");
+                return;
+            }
             setWeight(i, weight);
         } else {
             setWeight(i, 1.0 / length);

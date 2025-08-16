@@ -850,7 +850,7 @@ void Simpoint::doClustering() {
             initSeedFinalCenters[initSeedRun] = NULL;
         }
 
-        /*if (options.useBinarySearch) {
+        if (options.useBinarySearch) {
             if (bicScores[runNumber] > bicScores[max_bic_ndx]) max_bic_ndx = runNumber;
             if (bicScores[runNumber] < bicScores[min_bic_ndx]) min_bic_ndx = runNumber;
 
@@ -877,7 +877,7 @@ void Simpoint::doClustering() {
                     options.kValues.push_back(next_k);
                 }
             }
-        }*/
+        }
     }
 
     savePostClusteringData();

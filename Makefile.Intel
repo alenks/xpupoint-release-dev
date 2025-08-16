@@ -16,7 +16,7 @@ SIMPOINT_ROOT ?= $(TOOLS_DIR)/simpoint
 .EXPORT_ALL_VARIABLES:
 
 .PHONY: all cpupintool gtpintool pin-profiler pin-timer gt-profiler gt-timer lte-lib simpoint
-.PHONY: clean help setup-deps download-pin download-gtpin clean-tools clean-deps
+.PHONY: clean distclean help setup-deps download-pin download-gtpin clean-tools clean-deps
 
 all: setup-deps cpupintool gtpintool simpoint
 
@@ -73,7 +73,9 @@ simpoint:
 		$(MAKE) -C $(SIMPOINT_ROOT); \
 	fi
 
-clean: clean-tools clean-deps
+clean: clean-tools
+
+distclean: clean-tools clean-deps
 
 clean-tools:
 	-$(MAKE) -C src/XPU-Profiler/Intel/CPUPinTool clean

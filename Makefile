@@ -1,6 +1,6 @@
 # Main Makefile
 
-.PHONY: auto Intel intel INTEL NVIDIA nvidia Nvidia help clean detect-gpu \
+.PHONY: auto Intel intel INTEL NVIDIA nvidia Nvidia help clean detect-gpu distclean \
 		clean-intel clean-nvidia benchmark bench-intel bench-nvidia clean-bench \
 		$(addprefix build-intel-,$(BENCHMARKS)) \
 		$(addprefix build-nvidia-,$(BENCHMARKS)) \
@@ -58,7 +58,12 @@ benchmark:
 
 benchmarks: benchmark
 
-clean: clean-intel clean-nvidia clean-bench
+clean: clean-intel clean-nvidia 
+
+distclean:
+	-$(MAKE) -f Makefile.Intel distclean
+	-$(MAKE) -f Makefile.NVIDIA distclean
+	-$(MAKE) -C "benchmarks/$*" -f "Makefile" distclean
 
 clean-intel:
 	-$(MAKE) -f Makefile.Intel clean

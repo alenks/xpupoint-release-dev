@@ -101,6 +101,7 @@ Before running experiments, verify your GPU platforms are functioning:
 nvidia-smi
 
 # For Intel GPUs  
+sycl-ls
 intel_gpu_top
 ```
 

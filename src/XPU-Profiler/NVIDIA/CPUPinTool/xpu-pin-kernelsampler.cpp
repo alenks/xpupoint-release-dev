@@ -131,6 +131,7 @@ void CPU_on_kernel_complete(const char * kname)
     curr_kernel_call[kname]++;
   }
   region_boundary.push_back(std::make_pair(kname, curr_kernel_call[kname]));
+#if 0
   std::cerr << "[XPU_TRACER]["<< __FUNCTION__ <<"] Dynamic instruction count on CPU: " << tot_insn_count << std::endl;
   if(KnobBBVerbose){
     std::cerr << "[XPU_TRACER]["<< __FUNCTION__ <<"] Dynamic instruction count on CPU per-thread: [ ";
@@ -139,6 +140,7 @@ void CPU_on_kernel_complete(const char * kname)
     }
     std::cerr << "]" << std::endl;
   }
+#endif
 
   for (uint64_t tid = 0 ; tid <= atomic_get(&max_thread_id) ; tid++) {
     if(isimpoint->IsThreadOfInterest(tid)) 

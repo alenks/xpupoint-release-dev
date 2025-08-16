@@ -17,9 +17,12 @@ tools/pin-*
 tools/gtpin-*
 tools/nvbit-*
 tools/cmake-*
+BasicBlocksCPU
+KOIPerf.*
 benchmarks/gromacs/install
 benchmarks/gromacs/input
 tools/simpoint/simpoint
+benchmarks/gromacs/gromacs-2023.3
 benchmarks/gromacs/tests/*/run*.sh
 benchmarks/gromacs/tests/*/benchMEM.tpr
 benchmarks/gromacs/tests/*/confout.gro
